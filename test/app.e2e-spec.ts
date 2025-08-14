@@ -1,10 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus } from '@nestjs/common';
+import {
+  INestApplication,
+  HttpStatus,
+  ValidationPipe,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { User } from '../src/users/user.entity';
-import { Product } from '../src/products/product.entity';
+import { Reflector } from '@nestjs/core';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -23,16 +29,14 @@ describe('AppController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     // Apply global pipes and interceptors as in main.ts
     app.useGlobalPipes(
-      new (require('@nestjs/common').ValidationPipe)({
+      new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
       }),
     );
     app.useGlobalInterceptors(
-      new (require('@nestjs/common').ClassSerializerInterceptor)(
-        app.get(require('@nestjs/core').Reflector),
-      ),
+      new ClassSerializerInterceptor(app.get(Reflector)),
     );
     app.setGlobalPrefix('v1'); // Set global prefix as in main.ts
     await app.init();
@@ -40,7 +44,9 @@ describe('AppController (e2e)', () => {
     dataSource = app.get(DataSource);
 
     // Clear database before tests
-    await dataSource.query('TRUNCATE TABLE products, users RESTART IDENTITY CASCADE;');
+    await dataSource.query(
+      'TRUNCATE TABLE products, users RESTART IDENTITY CASCADE;',
+    );
 
     // Register admin user
     const adminRegisterRes = await request(app.getHttpServer())
@@ -91,7 +97,9 @@ describe('AppController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await dataSource.query('TRUNCATE TABLE products, users RESTART IDENTITY CASCADE;');
+    await dataSource.query(
+      'TRUNCATE TABLE products, users RESTART IDENTITY CASCADE;',
+    );
     await app.close();
   });
 

@@ -19,7 +19,7 @@ import { HealthModule } from './health/health.module';
     HealthModule,
     LoggerModule.forRoot({
       pinoHttp: {
-        transport: 
+        transport:
           process.env.NODE_ENV !== 'production'
             ? {
                 target: 'pino-pretty',
@@ -35,5 +35,3 @@ import { HealthModule } from './health/health.module';
   providers: [AppService],
 })
 export class AppModule {}
-
-

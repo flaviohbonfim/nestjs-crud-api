@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
@@ -13,7 +17,10 @@ export class ProductsService {
     private productsRepository: Repository<Product>,
   ) {}
 
-  async create(createProductDto: CreateProductDto, user: User): Promise<Product> {
+  async create(
+    createProductDto: CreateProductDto,
+    user: User,
+  ): Promise<Product> {
     const product = this.productsRepository.create({
       ...createProductDto,
       ownerId: user.id,
@@ -42,10 +49,15 @@ export class ProductsService {
     const product = await this.findOne(id);
 
     if (product.ownerId !== user.id && user.role !== 'admin') {
-      throw new ForbiddenException('You are not allowed to update this product');
+      throw new ForbiddenException(
+        'You are not allowed to update this product',
+      );
     }
 
-    const updatedProduct = this.productsRepository.merge(product, updateProductDto);
+    const updatedProduct = this.productsRepository.merge(
+      product,
+      updateProductDto,
+    );
     return this.productsRepository.save(updatedProduct);
   }
 
@@ -53,7 +65,9 @@ export class ProductsService {
     const product = await this.findOne(id);
 
     if (product.ownerId !== user.id && user.role !== 'admin') {
-      throw new ForbiddenException('You are not allowed to delete this product');
+      throw new ForbiddenException(
+        'You are not allowed to delete this product',
+      );
     }
 
     const result = await this.productsRepository.delete(id);

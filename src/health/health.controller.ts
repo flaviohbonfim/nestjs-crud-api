@@ -10,15 +10,25 @@ export class HealthController {
 
   @Get()
   @ApiOperation({ summary: 'Check application and database health' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Application and database are healthy.' })
-  @ApiResponse({ status: HttpStatus.SERVICE_UNAVAILABLE, description: 'Database connection failed.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Application and database are healthy.',
+  })
+  @ApiResponse({
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    description: 'Database connection failed.',
+  })
   async getHealth(@Res() res: Response) {
     const dbHealthy = await this.healthService.checkDatabaseConnection();
 
     if (dbHealthy) {
-      return res.status(HttpStatus.OK).json({ status: 'ok', database: 'connected' });
+      return res
+        .status(HttpStatus.OK)
+        .json({ status: 'ok', database: 'connected' });
     } else {
-      return res.status(HttpStatus.SERVICE_UNAVAILABLE).json({ status: 'error', database: 'disconnected' });
+      return res
+        .status(HttpStatus.SERVICE_UNAVAILABLE)
+        .json({ status: 'error', database: 'disconnected' });
     }
   }
 }

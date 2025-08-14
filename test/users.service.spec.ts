@@ -2,12 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../src/users/users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../src/users/user.entity';
-import { Repository } from 'typeorm';
 import { ConflictException } from '@nestjs/common';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let usersRepository: Repository<User>;
 
   const mockUsersRepository = {
     create: jest.fn(),
@@ -28,7 +26,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    usersRepository = module.get<Repository<User>>(getRepositoryToken(User));
   });
 
   it('should be defined', () => {
@@ -76,7 +73,6 @@ describe('UsersService', () => {
       expect(mockUsersRepository.findOneBy).toHaveBeenCalledWith({
         email: 'existing@example.com',
       });
-      
     });
   });
 
@@ -117,7 +113,9 @@ describe('UsersService', () => {
 
       const result = await service.findOneById('uuid');
       expect(result).toEqual(user);
-      expect(mockUsersRepository.findOneBy).toHaveBeenCalledWith({ id: 'uuid' });
+      expect(mockUsersRepository.findOneBy).toHaveBeenCalledWith({
+        id: 'uuid',
+      });
     });
 
     it('should return null if user not found by id', async () => {

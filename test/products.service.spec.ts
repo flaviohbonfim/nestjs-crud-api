@@ -2,14 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from '../src/products/products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Product } from '../src/products/product.entity';
-import { Repository } from 'typeorm';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { User } from '../src/users/user.entity';
 
 describe('ProductsService', () => {
   let service: ProductsService;
-  let productsRepository: Repository<Product>;
-
   const mockProductsRepository = {
     create: jest.fn(),
     save: jest.fn(),
@@ -51,9 +48,6 @@ describe('ProductsService', () => {
     }).compile();
 
     service = module.get<ProductsService>(ProductsService);
-    productsRepository = module.get<Repository<Product>>(
-      getRepositoryToken(Product),
-    );
   });
 
   it('should be defined', () => {
@@ -108,7 +102,9 @@ describe('ProductsService', () => {
 
       const result = await service.findOne('p1');
       expect(result).toEqual(product);
-      expect(mockProductsRepository.findOneBy).toHaveBeenCalledWith({ id: 'p1' });
+      expect(mockProductsRepository.findOneBy).toHaveBeenCalledWith({
+        id: 'p1',
+      });
     });
 
     it('should throw NotFoundException if product not found', async () => {
@@ -159,7 +155,11 @@ describe('ProductsService', () => {
         ...updateProductDto,
       });
 
-      const result = await service.update('p1', updateProductDto, mockAdminUser);
+      const result = await service.update(
+        'p1',
+        updateProductDto,
+        mockAdminUser,
+      );
       expect(result.name).toBe('Updated Product');
     });
 
@@ -200,7 +200,9 @@ describe('ProductsService', () => {
       mockProductsRepository.findOneBy.mockResolvedValue(existingProduct);
       mockProductsRepository.delete.mockResolvedValue({ affected: 1 });
 
-      await expect(service.remove('p1', mockAdminUser)).resolves.toBeUndefined();
+      await expect(
+        service.remove('p1', mockAdminUser),
+      ).resolves.toBeUndefined();
     });
 
     it('should throw ForbiddenException if user is not owner or admin', async () => {

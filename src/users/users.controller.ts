@@ -4,7 +4,12 @@ import { User } from './user.entity';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -18,7 +23,10 @@ export class UsersController {
   @ApiBearerAuth() // Explicitly add here
   @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns all users.' })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized.' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized.',
+  })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Forbidden.' })
   findAll(): Promise<User[]> {
     return this.usersService.findAll();

@@ -7,8 +7,12 @@ import { UnauthorizedException, ConflictException } from '@nestjs/common';
 
 // Mock bcrypt functions
 jest.mock('bcrypt', () => ({
-  hash: jest.fn((password, salt) => 'hashed_' + password),
-  compare: jest.fn((password, hash) => password === hash.replace('hashed_', '')),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hash: jest.fn((password, _salt) => 'hashed_' + password),
+  compare: jest.fn(
+    (password: string, hash: string) =>
+      password === hash.replace('hashed_', ''),
+  ),
   genSalt: jest.fn(() => 'salt'),
 }));
 
@@ -69,7 +73,10 @@ describe('AuthService', () => {
       const result = await service.register(registerDto);
 
       expect(bcrypt.genSalt).toHaveBeenCalled();
-      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 'salt');
+      expect(bcrypt.hash).toHaveBeenCalledWith(
+        'password123',
+        'salt',
+      );
       expect(usersService.create).toHaveBeenCalledWith({
         name: 'New User',
         email: 'new@example.com',
@@ -145,7 +152,6 @@ describe('AuthService', () => {
       expect(usersService.findOneByEmail).toHaveBeenCalledWith(
         'nonexistent@example.com',
       );
-      
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
@@ -174,7 +180,6 @@ describe('AuthService', () => {
         'wrongpassword',
         'hashed_correctpassword',
       );
-      
     });
   });
 });

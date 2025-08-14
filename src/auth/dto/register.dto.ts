@@ -7,7 +7,10 @@ export class RegisterDto {
   @Length(2, 100)
   name: string;
 
-  @ApiProperty({ example: 'john.doe@example.com', description: "User's email address" })
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: "User's email address",
+  })
   @IsEmail()
   email: string;
 
