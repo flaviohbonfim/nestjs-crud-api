@@ -32,7 +32,11 @@ export class AuthService {
       loginDto.email.toLowerCase(),
     );
 
-    if (!user || !(await bcrypt.compare(loginDto.password, user.passwordHash))) {
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!(await bcrypt.compare(loginDto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

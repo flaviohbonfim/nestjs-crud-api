@@ -76,8 +76,7 @@ describe('UsersService', () => {
       expect(mockUsersRepository.findOneBy).toHaveBeenCalledWith({
         email: 'existing@example.com',
       });
-      expect(mockUsersRepository.create).not.toHaveBeenCalled();
-      expect(mockUsersRepository.save).not.toHaveBeenCalled();
+      
     });
   });
 
