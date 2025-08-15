@@ -1,5 +1,5 @@
 // test/app.e2e-spec.ts
-
+import 'dotenv/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
