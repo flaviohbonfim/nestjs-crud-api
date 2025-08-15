@@ -7,7 +7,6 @@ import { UnauthorizedException, ConflictException } from '@nestjs/common';
 
 // Mock bcrypt functions
 jest.mock('bcrypt', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hash: jest.fn((password, _salt) => 'hashed_' + password),
   compare: jest.fn(
     (password: string, hash: string) =>
