@@ -41,7 +41,7 @@ node_modules/
 jspm_packages/
 
 # TypeScript v1.8+ compiled files
-*.js
+# *.js
 *.jsx
 *.mjs
 *.cjs

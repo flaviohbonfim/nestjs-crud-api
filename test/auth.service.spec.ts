@@ -72,10 +72,7 @@ describe('AuthService', () => {
       const result = await service.register(registerDto);
 
       expect(bcrypt.genSalt).toHaveBeenCalled();
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        'password123',
-        'salt',
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 'salt');
       expect(usersService.create).toHaveBeenCalledWith({
         name: 'New User',
         email: 'new@example.com',
