@@ -32,10 +32,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          # CORREÇÃO: Valores fixos para o banco de dados de teste
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: nest_crud_test # Usar um nome de DB de teste é uma boa prática
+          POSTGRES_DB: nest_crud_test
         ports:
           - 5432:5432
         options: >-
@@ -62,20 +61,22 @@ jobs:
     - name: Run migrations
       run: npm run typeorm -- migration:run
       env:
-        # CORREÇÃO: Usando os mesmos valores fixos do serviço
         DB_HOST: localhost
         DB_PORT: 5432
         DB_USER: postgres
         DB_PASSWORD: postgres
         DB_NAME: nest_crud_test
         DB_SSL: false
+        JWT_SECRET: test-secret
     - name: Run e2e tests
       run: npm run test:e2e
       env:
-        # CORREÇÃO: Usando os mesmos valores fixos do serviço
         DB_HOST: localhost
         DB_PORT: 5432
         DB_USER: postgres
         DB_PASSWORD: postgres
         DB_NAME: nest_crud_test
         DB_SSL: false
+        JWT_SECRET: test-secret
+        ACCESS_TOKEN_TTL: 15m
+        REFRESH_TOKEN_TTL: 7d
