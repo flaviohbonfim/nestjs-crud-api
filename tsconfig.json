@@ -3,6 +3,7 @@
   "compilerOptions": {
     "module": "NodeNext", // <-- Altere para NodeNext
     "moduleResolution": "NodeNext", // <-- Altere para NodeNext
+    "isolatedModules": true,
     "esModuleInterop": true,
     "declaration": true,
     "removeComments": true,

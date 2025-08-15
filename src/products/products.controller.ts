@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -97,6 +98,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a product by ID' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,

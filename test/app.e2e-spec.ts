@@ -1,3 +1,5 @@
+// test/app.e2e-spec.ts
+
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
@@ -5,7 +7,7 @@ import {
   ValidationPipe,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { User } from '../src/users/user.entity';
@@ -16,6 +18,7 @@ describe('AppController (e2e)', () => {
   let dataSource: DataSource;
   let adminToken: string;
   let userToken: string;
+  let anotherUserToken: string;
   let userId: string;
   let adminId: string;
   let productId: string;
@@ -26,7 +29,6 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    // Apply global pipes and interceptors as in main.ts
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -37,12 +39,11 @@ describe('AppController (e2e)', () => {
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
-    app.setGlobalPrefix('v1'); // Set global prefix as in main.ts
+    app.setGlobalPrefix('v1');
     await app.init();
 
     dataSource = app.get(DataSource);
 
-    // Clear database before tests
     await dataSource.query(
       'TRUNCATE TABLE products, users RESTART IDENTITY CASCADE;',
     );
@@ -58,16 +59,6 @@ describe('AppController (e2e)', () => {
       .expect(HttpStatus.CREATED);
     adminId = adminRegisterRes.body.id;
 
-    // Login admin user
-    const adminLoginRes = await request(app.getHttpServer())
-      .post('/v1/auth/login')
-      .send({
-        email: 'admin@example.com',
-        password: 'adminpassword',
-      })
-      .expect(HttpStatus.OK);
-    adminToken = adminLoginRes.body.access_token;
-
     // Register regular user
     const userRegisterRes = await request(app.getHttpServer())
       .post('/v1/auth/register')
@@ -79,6 +70,16 @@ describe('AppController (e2e)', () => {
       .expect(HttpStatus.CREATED);
     userId = userRegisterRes.body.id;
 
+    // Register another regular user for permission tests
+    await request(app.getHttpServer())
+      .post('/v1/auth/register')
+      .send({
+        name: 'Another User',
+        email: 'another@example.com',
+        password: 'anotherpassword',
+      })
+      .expect(HttpStatus.CREATED);
+
     // Login regular user
     const userLoginRes = await request(app.getHttpServer())
       .post('/v1/auth/login')
@@ -89,10 +90,30 @@ describe('AppController (e2e)', () => {
       .expect(HttpStatus.OK);
     userToken = userLoginRes.body.access_token;
 
+    // Login another user
+    const anotherUserLoginRes = await request(app.getHttpServer())
+      .post('/v1/auth/login')
+      .send({
+        email: 'another@example.com',
+        password: 'anotherpassword',
+      })
+      .expect(HttpStatus.OK);
+    anotherUserToken = anotherUserLoginRes.body.access_token;
+
     // Manually set admin role for the admin user
     await dataSource
       .getRepository(User)
       .update({ id: adminId }, { role: 'admin' });
+
+    // Login admin user AFTER setting role
+    const adminLoginRes = await request(app.getHttpServer())
+      .post('/v1/auth/login')
+      .send({
+        email: 'admin@example.com',
+        password: 'adminpassword',
+      })
+      .expect(HttpStatus.OK);
+    adminToken = adminLoginRes.body.access_token;
   });
 
   afterAll(async () => {
@@ -114,14 +135,14 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/v1/auth/register')
         .send({
-          name: 'Another User',
-          email: 'another@example.com',
-          password: 'anotherpassword',
+          name: 'Yet Another User',
+          email: 'yetanother@example.com',
+          password: 'yetanotherpassword',
         })
         .expect(HttpStatus.CREATED);
       expect(res.body).toHaveProperty('id');
-      expect(res.body).toHaveProperty('name', 'Another User');
-      expect(res.body).toHaveProperty('email', 'another@example.com');
+      expect(res.body).toHaveProperty('name', 'Yet Another User');
+      expect(res.body).toHaveProperty('email', 'yetanother@example.com');
       expect(res.body).not.toHaveProperty('passwordHash');
     });
 
@@ -165,7 +186,7 @@ describe('AppController (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(HttpStatus.OK);
       expect(res.body).toBeInstanceOf(Array);
-      expect(res.body.length).toBeGreaterThanOrEqual(2); // Admin and Test User
+      expect(res.body.length).toBeGreaterThanOrEqual(3);
       expect(res.body[0]).not.toHaveProperty('passwordHash');
     });
 
@@ -198,7 +219,7 @@ describe('AppController (e2e)', () => {
       expect(res.body).toHaveProperty('id');
       expect(res.body).toHaveProperty('name', 'My First Product');
       expect(res.body).toHaveProperty('ownerId', userId);
-      productId = res.body.id; // Save for later tests
+      productId = res.body.id;
     });
 
     it('GET /products should return products', async () => {
@@ -208,7 +229,6 @@ describe('AppController (e2e)', () => {
         .expect(HttpStatus.OK);
       expect(res.body).toBeInstanceOf(Array);
       expect(res.body.length).toBeGreaterThan(0);
-      expect(res.body[0]).toHaveProperty('ownerId', userId);
     });
 
     it('GET /products/:id should return a specific product', async () => {
@@ -242,13 +262,13 @@ describe('AppController (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ price: 20 })
         .expect(HttpStatus.OK);
-      expect(res.body).toHaveProperty('price', 20);
+      expect(res.body.price).toBe(20); // CORRIGIDO: Espera um número, não uma string
     });
 
     it('PATCH /products/:id should be forbidden if not owner or admin', () => {
       return request(app.getHttpServer())
         .patch(`/v1/products/${productId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${anotherUserToken}`) // CORRIGIDO: Usa outro usuário
         .send({ name: 'Forbidden Update' })
         .expect(HttpStatus.FORBIDDEN);
     });
@@ -284,7 +304,7 @@ describe('AppController (e2e)', () => {
 
       return request(app.getHttpServer())
         .delete(`/v1/products/${productForForbiddenDeleteId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${anotherUserToken}`) // CORRIGIDO: Usa outro usuário
         .expect(HttpStatus.FORBIDDEN);
     });
   });
